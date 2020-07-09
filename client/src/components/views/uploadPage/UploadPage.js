@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Typography, Button, Form, message, Input, Icon } from "antd";
 import FileUpload from "../../utils/FileUpload";
+import Axios from "axios";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -15,7 +16,7 @@ const Continents = [
   { key: 7, value: "Antarctica" },
 ];
 
-function UploadPage() {
+function UploadPage(props) {
   const [titleValue, setTitleValue] = useState("");
   const [descriptionValue, setDescriptionValue] = useState("");
   const [priceValue, setPriceValue] = useState("");
@@ -35,8 +36,41 @@ function UploadPage() {
     setContinentValue(e.currentTarget.value);
   };
   const updateImages = (newImages) => {
-    console.log(newImages);
     setImages(newImages);
+  };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (
+      !titleValue ||
+      !descriptionValue ||
+      !priceValue ||
+      !continentValue ||
+      !images
+    ) {
+      return alert("fill all the fields first");
+    }
+
+    const variables = {
+      writer: props.user.userData._id,
+      title: titleValue,
+      description: descriptionValue,
+      price: priceValue,
+      images: images,
+      continents: continentValue,
+    };
+    Axios.post("/api/product/uploadProduct", variables)
+      .then((response) => {
+        if (response.data.success) {
+          console.log("Product successfully uplaoded");
+          props.history.push("/");
+        } else {
+          console.log("Failed to upload product");
+        }
+      })
+      .catch((err) => {
+        console.log(err.response);
+      });
   };
   return (
     <div style={{ maxWidth: "700px", margin: "2rem auto" }}>
@@ -44,7 +78,7 @@ function UploadPage() {
         <Title level={2}> Upload Travel Product</Title>
       </div>
 
-      <Form onSubmit>
+      <Form onSubmit={onSubmit}>
         <FileUpload refreshFunction={updateImages} />
 
         <br />
@@ -68,7 +102,7 @@ function UploadPage() {
         </select>
         <br />
         <br />
-        <Button>Submit</Button>
+        <Button onClick={onSubmit}>Submit</Button>
       </Form>
     </div>
   );

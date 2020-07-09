@@ -12,9 +12,6 @@ const FileUpload = (props) => {
     const config = {
       header: {
         "content-type": "multipart/form-data",
-        // cookies: {
-        //   w_auth: cookie.get("w_auth"),
-        // },
       },
     };
     formData.append("file", files[0]);
