@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Icon, Col, Row, Card } from "antd";
 import ImageSlider from "../../utils/ImageSlider";
+import CheckBox from "../LandingPage/sections/CheckBox";
+import RadioBox from "../LandingPage/sections/RadioBox";
+import { continents, price } from "../LandingPage/sections/Datas";
 import Axios from "axios";
+import SearchFeature from "./sections/SearchFeature";
 
 const { Meta } = Card;
 function LandingPage() {
   const [Products, setProducts] = useState([]);
   const [Skip, setSkip] = useState(0);
   const [Limit, setLimit] = useState(8);
-  const [PostSize, setPostSize] = useState(8);
+  const [PostSize, setPostSize] = useState(0);
+  const [SearchTerms, setSearchTerms] = useState("");
+  const [Filter, setFilter] = useState({
+    continents: [],
+    price: [],
+  });
 
   useEffect(() => {
     const variables = {
@@ -17,15 +26,18 @@ function LandingPage() {
     };
     getProducts(variables);
   }, []);
-  console.log(Products, "hghfgfh");
+
   const getProducts = (variables) => {
     Axios.post("/api/product/getProducts", variables)
       .then((response) => {
         if (response.data.success) {
-          console.log(response.data.products, "===prodyiccffff");
-          setProducts((prev) => {
-            return [...prev, ...response.data.products];
-          });
+          if (variables.loadMore) {
+            setProducts((prev) => {
+              return [...prev, ...response.data.products];
+            });
+          } else {
+            setProducts(response.data.products);
+          }
           setPostSize(response.data.postSize);
         } else {
           console.log("failed to fetch product data");
@@ -38,10 +50,12 @@ function LandingPage() {
   const onLoadMore = () => {
     let skip = Skip + Limit;
     const variables = {
-      skip: Skip,
+      skip: skip,
       limit: Limit,
+      loadMore: true,
     };
     getProducts(variables);
+    setSkip(skip);
   };
   const renderCards = Products.map((product, index) => {
     return (
@@ -52,6 +66,46 @@ function LandingPage() {
       </Col>
     );
   });
+  const showFilteredResults = (filters) => {
+    const variables = {
+      skip: 0,
+      limit: Limit,
+      filters: filters,
+    };
+    getProducts(variables);
+    setSkip(0);
+  };
+  const handlePrice = (value) => {
+    const data = price;
+    let array = [];
+    for (let key in data) {
+      if (data[key]._id === parseInt(value, 10)) {
+        array = data[key].array;
+      }
+    }
+    return array;
+  };
+  const handleFilters = (filters, category) => {
+    const newFilters = { ...Filter };
+    newFilters[category] = filters;
+    if (category === "price") {
+      let priceValues = handlePrice(filters);
+      newFilters[category] = priceValues;
+    }
+    showFilteredResults(newFilters);
+    setFilter(newFilters);
+  };
+  const updateSearchTerms = (newSearchTerm) => {
+    const variables = {
+      skip: 0,
+      limit: Limit,
+      filters: Filter,
+      searchTerm: newSearchTerm,
+    };
+    setSkip(0);
+    setSearchTerms(newSearchTerm);
+    getProducts(variables);
+  };
   return (
     <div style={{ width: "75%", margin: "3rem auto" }}>
       <div style={{ textAlign: "center" }}>
@@ -62,7 +116,31 @@ function LandingPage() {
       </div>
 
       {/* filter */}
+      <Row gutter={[16, 16]}>
+        <Col lg={12} xs={24}>
+          <CheckBox
+            list={continents}
+            handleFilters={(filters) => handleFilters(filters, "continents")}
+          />
+        </Col>
+        <Col lg={12} xs={24}>
+          <RadioBox
+            list={price}
+            handleFilters={(filters) => handleFilters(filters, "price")}
+          />
+        </Col>
+      </Row>
+
       {/* search */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          margin: "1rem auto",
+        }}
+      >
+        <SearchFeature refreshFunction={updateSearchTerms} />
+      </div>
 
       {Products.length === 0 ? (
         <div

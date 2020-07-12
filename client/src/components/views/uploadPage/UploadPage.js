@@ -17,6 +17,7 @@ const Continents = [
 ];
 
 function UploadPage(props) {
+  console.log(props, "ghghghghghghg");
   const [titleValue, setTitleValue] = useState("");
   const [descriptionValue, setDescriptionValue] = useState("");
   const [priceValue, setPriceValue] = useState("");
