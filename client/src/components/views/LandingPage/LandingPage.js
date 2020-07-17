@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Icon, Col, Row, Card } from "antd";
 import ImageSlider from "../../utils/ImageSlider";
 import CheckBox from "../LandingPage/sections/CheckBox";
@@ -60,7 +61,14 @@ function LandingPage() {
   const renderCards = Products.map((product, index) => {
     return (
       <Col lg={6} md={8} xs={24}>
-        <Card hoverable={true} cover={<ImageSlider images={product.images} />}>
+        <Card
+          hoverable={true}
+          cover={
+            <Link to={`/product/${product._id}`}>
+              <ImageSlider images={product.images} />
+            </Link>
+          }
+        >
           <Meta title={product.title} description={`$${product.price}`} />
         </Card>
       </Col>
